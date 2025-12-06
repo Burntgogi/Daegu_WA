@@ -56,4 +56,4 @@ public/
 ```
 
 ## 📝 라이선스
-This project is licensed under the MIT License.
+Copyright © ARG. All rights reserved.
