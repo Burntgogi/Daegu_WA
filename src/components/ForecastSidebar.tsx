@@ -4,10 +4,11 @@ import { WiDaySunny, WiRain, WiSnow, WiNightClear, WiDayCloudy, WiFog } from 're
 
 interface ForecastSidebarProps {
     forecast: ForecastDay[];
+    loading: boolean;
     isMobile: boolean;
 }
 
-const ForecastSidebar: React.FC<ForecastSidebarProps> = ({ forecast, isMobile }) => {
+const ForecastSidebar: React.FC<ForecastSidebarProps> = ({ forecast, loading, isMobile }) => {
     const getIcon = (condition: string) => {
         switch (condition) {
             case 'Sunny': return <WiDaySunny size={40} />;
@@ -55,6 +56,11 @@ const ForecastSidebar: React.FC<ForecastSidebarProps> = ({ forecast, isMobile })
             borderRadius: '20px',
             backdropFilter: 'blur(3px)'
         }}>
+            {forecast.length === 0 && (
+                <p role="status" style={{ color: '#fff', textAlign: 'center' }}>
+                    {loading ? '예보 불러오는 중' : '예보 확인 불가'}
+                </p>
+            )}
             {forecast.map((day, index) => (
                 <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#fff' }}>
                     <div style={{ fontSize: '1.4rem', fontWeight: 600 }}>

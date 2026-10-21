@@ -5,6 +5,7 @@ import { FaChevronDown } from 'react-icons/fa';
 
 interface WeatherInfoProps {
     weather: WeatherData['current'];
+    loading: boolean;
     fullDate: string;
     timeString: string;
     districtName: string;
@@ -12,16 +13,16 @@ interface WeatherInfoProps {
     onDistrictClick: () => void;
 }
 
-const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, fullDate, timeString, districtName, onClick, onDistrictClick }) => {
+const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, loading, fullDate, timeString, districtName, onClick, onDistrictClick }) => {
     const getIcon = () => {
-        switch (weather.condition) {
+        switch (weather?.condition) {
             case 'Sunny': return <WiDaySunny size={75} />;
             case 'Night': return <WiNightClear size={75} />;
             case 'Rain': return <WiRain size={75} />;
             case 'Snow': return <WiSnow size={75} />;
             case 'Cloudy': return <WiDayCloudy size={75} />;
             case 'Fog': return <WiFog size={75} />;
-            default: return <WiDaySunny size={75} />;
+            default: return null;
         }
     };
 
@@ -83,10 +84,10 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, fullDate, timeString
             </div>
 
             {/* Weather Data (Horizontal Layout) */}
-            <div style={{ textShadow: 'var(--shadow-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+            <div role="status" style={{ textShadow: 'var(--shadow-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
                 <div
-                    onClick={(e) => { e.stopPropagation(); onClick(); }}
-                    style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', cursor: 'pointer', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}
+                    onClick={weather ? (e) => { e.stopPropagation(); onClick(); } : undefined}
+                    style={{ pointerEvents: weather ? 'auto' : 'none', display: 'flex', alignItems: 'center', cursor: weather ? 'pointer' : 'default', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}
                 >
                     {getIcon()}
                 </div>
@@ -98,9 +99,9 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, fullDate, timeString
                         lineHeight: 1,
                         margin: 0
                     }}>
-                        {weather.temperature}°
+                        {weather ? `${weather.temperature}°` : '—'}
                     </p>
-                    <p style={{ fontSize: '1.2rem', opacity: 0.9, margin: 0, paddingLeft: '5px' }}>{weather.description}</p>
+                    <p style={{ fontSize: '1.2rem', opacity: 0.9, margin: 0, paddingLeft: '5px' }}>{weather?.description ?? (loading ? '날씨 불러오는 중' : '날씨 확인 불가')}</p>
                 </div>
             </div>
         </div>

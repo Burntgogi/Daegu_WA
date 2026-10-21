@@ -19,8 +19,8 @@ export interface WeatherData {
         condition: WeatherCondition;
         temperature: number;
         description: string;
-    };
-    airQuality: AirQuality;
+    } | null;
+    airQuality: AirQuality | null;
     forecast: ForecastDay[];
 }
 

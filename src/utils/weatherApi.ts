@@ -1,4 +1,4 @@
-import type { WeatherData, WeatherCondition } from '../types';
+import type { AirQuality, WeatherData, WeatherCondition } from '../types';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -32,57 +32,65 @@ const getAirQualityLevel = (pm10: number): 'Good' | 'Moderate' | 'Bad' | 'Very B
     return 'Very Bad';
 };
 
+const isMeasurement = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value);
+
 export const fetchWeather = async (lat: number, lon: number): Promise<WeatherData> => {
-    try {
-        // 1. Fetch Weather + Forecast
-        const weatherRes = await fetch(
+    const weatherRequest = (async () => {
+        const response = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`
         );
-        const weatherJson = await weatherRes.json();
+        if (!response.ok) throw new Error(`Weather HTTP ${response.status}`);
+        const { current, daily } = await response.json();
+        if (![current?.temperature_2m, current?.weather_code, current?.is_day].every(isMeasurement)) {
+            throw new Error('Weather observations unavailable');
+        }
 
-        // 2. Fetch Air Quality
-        const airRes = await fetch(
-            `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5`
-        );
-        const airJson = await airRes.json();
-
-        const current = weatherJson.current;
-        const daily = weatherJson.daily;
-        const air = airJson.current;
-
-        // Process Forecast (Skip today, take next 4 days)
         const forecast = [];
         for (let i = 1; i <= 4; i++) {
+            if (![daily?.temperature_2m_min?.[i], daily?.temperature_2m_max?.[i], daily?.weather_code?.[i]].every(isMeasurement)) {
+                throw new Error('Forecast observations unavailable');
+            }
             forecast.push({
                 date: format(new Date(daily.time[i]), 'MM/dd'),
                 dayOfWeek: format(new Date(daily.time[i]), 'EEE', { locale: ko }),
                 minTemp: Math.round(daily.temperature_2m_min[i]),
                 maxTemp: Math.round(daily.temperature_2m_max[i]),
-                condition: mapWmoCodeToCondition(daily.weather_code[i], 1) // Forecast always shows day icon
+                condition: mapWmoCodeToCondition(daily.weather_code[i], 1)
             });
         }
-
         return {
             current: {
                 condition: mapWmoCodeToCondition(current.weather_code, current.is_day),
                 temperature: Math.round(current.temperature_2m),
                 description: mapWmoCodeToDescription(current.weather_code)
             },
-            airQuality: {
-                pm10: air.pm10,
-                pm25: air.pm2_5,
-                level: getAirQualityLevel(air.pm10)
-            },
             forecast
         };
+    })();
 
-    } catch (error) {
-        console.error("Failed to fetch weather:", error);
-        // Fallback
+    const airRequest = (async (): Promise<AirQuality> => {
+        const response = await fetch(
+            `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5`
+        );
+        if (!response.ok) throw new Error(`Air quality HTTP ${response.status}`);
+        const { current } = await response.json();
+        if (!isMeasurement(current?.pm10) || !isMeasurement(current?.pm2_5)) {
+            throw new Error('Air quality observations unavailable');
+        }
         return {
-            current: { condition: 'Sunny', temperature: 0, description: '연결 실패' },
-            airQuality: { pm10: 0, pm25: 0, level: 'Good' },
-            forecast: []
+            pm10: current.pm10,
+            pm25: current.pm2_5,
+            level: getAirQualityLevel(current.pm10)
         };
-    }
+    })();
+
+    const [weather, air] = await Promise.allSettled([weatherRequest, airRequest]);
+    if (weather.status === 'rejected') console.error('Failed to fetch weather:', weather.reason);
+    if (air.status === 'rejected') console.error('Failed to fetch air quality:', air.reason);
+    return {
+        current: weather.status === 'fulfilled' ? weather.value.current : null,
+        forecast: weather.status === 'fulfilled' ? weather.value.forecast : [],
+        airQuality: air.status === 'fulfilled' ? air.value : null
+    };
 };

@@ -22,11 +22,11 @@ function App() {
 
   const currentDistrict = districts.find(d => d.id === currentDistrictId) || districts[0];
 
-  const { weatherData, toggleWeather } = useWeather(currentDistrict.lat, currentDistrict.lon);
+  const { weatherData, loading, toggleWeather } = useWeather(currentDistrict.lat, currentDistrict.lon);
 
   // Derived conditions
-  const isFoggy = weatherData.current.condition === 'Fog' || weatherData.airQuality.level === 'Very Bad';
-  const isCloudy = weatherData.current.condition === 'Cloudy';
+  const isFoggy = weatherData.current?.condition === 'Fog' || weatherData.airQuality?.level === 'Very Bad';
+  const isCloudy = weatherData.current?.condition === 'Cloudy';
 
   return (
     <div style={{
@@ -107,16 +107,17 @@ function App() {
 
       {/* Canvas Weather Effects */}
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 4, pointerEvents: 'none' }}>
-        <WeatherEffects condition={weatherData.current.condition} />
+        {weatherData.current && <WeatherEffects condition={weatherData.current.condition} />}
       </div>
 
       {/* Content Layer */}
       <div style={{ position: 'relative', width: '100%', height: '100%', zIndex: 50 }}>
-        <ForecastSidebar forecast={weatherData.forecast} isMobile={isMobile} />
-        <AirQualityBadge airQuality={weatherData.airQuality} isMobile={isMobile} />
+        <ForecastSidebar forecast={weatherData.forecast} loading={loading} isMobile={isMobile} />
+        <AirQualityBadge airQuality={weatherData.airQuality} loading={loading} isMobile={isMobile} />
 
         <WeatherInfo
           weather={weatherData.current}
+          loading={loading}
           fullDate={fullDate}
           timeString={timeString}
           districtName={currentDistrict.name}

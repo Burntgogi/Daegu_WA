@@ -2,11 +2,12 @@ import React from 'react';
 import type { AirQuality } from '../types';
 
 interface AirQualityBadgeProps {
-    airQuality: AirQuality;
+    airQuality: AirQuality | null;
+    loading: boolean;
     isMobile: boolean;
 }
 
-const AirQualityBadge: React.FC<AirQualityBadgeProps> = ({ airQuality, isMobile }) => {
+const AirQualityBadge: React.FC<AirQualityBadgeProps> = ({ airQuality, loading, isMobile }) => {
     const getColor = (level: string) => {
         switch (level) {
             case 'Good': return '#4caf50'; // Green
@@ -67,20 +68,20 @@ const AirQualityBadge: React.FC<AirQualityBadgeProps> = ({ airQuality, isMobile 
         }}>
             <div style={{ fontSize: '1.8rem', opacity: 0.9, fontWeight: 600 }}>미세먼지</div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+            <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
                 <div style={{
                     width: '20px',
                     height: '20px',
                     borderRadius: '50%',
-                    backgroundColor: getColor(airQuality.level),
-                    boxShadow: '0 0 10px ' + getColor(airQuality.level),
+                    backgroundColor: getColor(airQuality?.level ?? ''),
+                    boxShadow: '0 0 10px ' + getColor(airQuality?.level ?? ''),
                     marginBottom: '10px'
                 }} />
-                <span style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1 }}>{getLabel(airQuality.level)}</span>
+                <span style={{ fontSize: airQuality ? '3rem' : '1.5rem', fontWeight: 800, lineHeight: 1 }}>{airQuality ? getLabel(airQuality.level) : (loading ? '불러오는 중' : '확인 불가')}</span>
             </div>
 
             <div style={{ fontSize: '1.5rem', marginTop: '10px', opacity: 0.8 }}>
-                {Math.round(airQuality.pm10)} µg/m³
+                {airQuality ? Math.round(airQuality.pm10) : '—'} µg/m³
             </div>
         </div>
     );
