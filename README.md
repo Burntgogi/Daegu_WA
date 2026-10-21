@@ -45,11 +45,11 @@ npm run build
 
 API 상태 회귀 검증은 Node.js 22.6 이상에서 `npm test`로 실행합니다. HTTP 실패, 네트워크 실패, 누락된 관측값, 부분 성공과 실제 관측값 `0`을 확인합니다. 화면 확인 시 두 Open-Meteo 요청을 차단해도 `좋음`, `0 µg/m³`, `0°`를 관측값처럼 표시하지 않아야 합니다.
 
-## GitHub Pages 배포
+## 배포
 
-배포 대상은 <https://burntgogi.github.io/Daegu_WA/>입니다. `main`의 push 또는 수동 실행에서 API 회귀 검사·lint·빌드가 모두 통과한 산출물만 Pages에 배포합니다. PR에서는 같은 검사를 실행하지만 배포하지 않습니다.
+기존 Netlify 연동을 사용합니다. GitHub의 `Weather checks`는 PR과 `main`에서 API 회귀 검사·lint·빌드를 실행합니다. Netlify는 PR의 Deploy Preview를 만들고, 병합 후 운영 배포를 처리합니다. 배포 상태와 실제 화면은 GitHub 검사에 연결된 Netlify 주소에서 확인합니다.
 
-Vite의 base는 `/Daegu_WA/`이며 개발·미리보기 서버도 이 경로로 접속합니다. 지역별 이미지·동영상과 웹 앱 manifest의 아이콘도 배포 하위 경로를 사용합니다. GitHub의 Pages 빌드 방식은 **GitHub Actions**로 설정해야 합니다.
+Vite와 공개 미디어 URL은 기존 루트 경로를 유지합니다. 별도 GitHub Pages 사이트나 `/Daegu_WA/` 하위 경로를 사용하지 않습니다.
 
 ## 📂 프로젝트 구조 (Structure)
 
