@@ -15,6 +15,22 @@ const air = () => ({ current: { pm10: 16, pm2_5: 8 } });
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status });
 const isAir = (input: unknown) => String(input).includes('air-quality-api.');
 
+for (const code of [80, 81, 82, 85, 86]) {
+    test(`WMO ${code} distinguishes rain showers from snow showers in current weather and forecast`, async t => {
+        const fixture = weather();
+        fixture.current.weather_code = code;
+        fixture.daily.weather_code.fill(code);
+        t.mock.method(globalThis, 'fetch', async (input: unknown) =>
+            isAir(input) ? json(air()) : json(fixture));
+
+        const result = await fetchWeather(35.87, 128.60);
+        const condition = code < 85 ? 'Rain' : 'Snow';
+        assert.equal(result.current?.condition, condition);
+        assert.equal(result.current?.description, code < 85 ? '소나기' : '눈 소나기');
+        assert.deepEqual(result.forecast.map(day => day.condition), Array(4).fill(condition));
+    });
+}
+
 test('an air-quality HTTP failure preserves weather and forecast', async t => {
     t.mock.method(globalThis, 'fetch', async (input: unknown) =>
         isAir(input) ? json(air(), 503) : json(weather()));

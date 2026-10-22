@@ -7,7 +7,8 @@ const mapWmoCodeToCondition = (code: number, isDay: number): WeatherCondition =>
     if (code === 1 || code === 2 || code === 3) return 'Cloudy'; // OpenMeteo 1-3 is clear/partly cloudy, but mapping to Cloudy for simplicity or Sunny? Let's say Cloudy for now or Sunny for 1.
     if (code === 45 || code === 48) return 'Fog';
     if (code >= 51 && code <= 67) return 'Rain';
-    if (code >= 71 && code <= 86) return 'Snow';
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'Snow';
+    if (code >= 80 && code <= 82) return 'Rain';
     if (code >= 95 && code <= 99) return 'Rain';
     return 'Cloudy';
 };
@@ -21,6 +22,8 @@ const mapWmoCodeToDescription = (code: number): string => {
     if (code >= 51 && code <= 55) return '이슬비';
     if (code >= 61 && code <= 65) return '비';
     if (code >= 71 && code <= 77) return '눈';
+    if (code >= 80 && code <= 82) return '소나기';
+    if (code === 85 || code === 86) return '눈 소나기';
     if (code >= 95) return '뇌우';
     return '흐림';
 };
