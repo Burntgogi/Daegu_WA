@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "test": "node --experimental-strip-types --test tests/weather-api.test.ts",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postbuild": "node scripts/build-csp.mjs",
+    "test:csp": "node --test scripts/check-csp-build.mjs"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
