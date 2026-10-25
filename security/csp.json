@@ -1,0 +1,5 @@
+{
+  "output": "dist",
+  "connect": "'self' https://api.open-meteo.com https://air-quality-api.open-meteo.com",
+  "frames": "'none'"
+}
