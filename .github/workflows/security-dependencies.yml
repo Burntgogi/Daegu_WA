@@ -1,0 +1,20 @@
+name: Security dependency and build checks
+on:
+  pull_request:
+  schedule:
+    - cron: '17 1 * * 1'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev
+      - run: npm audit
+      - run: npm run build
